@@ -127,17 +127,17 @@ function IdeaGenerator() {
               어려움
             </label>
             <div className="flex gap-2">
-              <input
-                type="text"
+              <textarea
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value)}
                 placeholder="예: 시간 관리가 어렵다"
-                className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none transition-colors"
+                rows="3"
+                className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none transition-colors resize-none"
               />
               <button
                 onClick={getRandomDifficulty}
                 disabled={loadingDifficulty}
-                className="bg-pink-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-pink-600 transition-colors disabled:opacity-50"
+                className="bg-pink-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-pink-600 transition-colors disabled:opacity-50 self-start"
               >
                 🎲 랜덤
               </button>
