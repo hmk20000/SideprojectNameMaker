@@ -2,11 +2,11 @@ import { useState } from 'react'
 
 function IdeaGenerator() {
   const [target, setTarget] = useState('')
-  const [problem, setProblem] = useState('')
+  const [difficulty, setDifficulty] = useState('')
   const [idea, setIdea] = useState(null)
   const [loading, setLoading] = useState(false)
   const [loadingTarget, setLoadingTarget] = useState(false)
-  const [loadingProblem, setLoadingProblem] = useState(false)
+  const [loadingDifficulty, setLoadingDifficulty] = useState(false)
   const [error, setError] = useState(null)
 
   const getRandomTarget = async () => {
@@ -34,8 +34,8 @@ function IdeaGenerator() {
     }
   }
 
-  const getRandomProblem = async () => {
-    setLoadingProblem(true)
+  const getRandomDifficulty = async () => {
+    setLoadingDifficulty(true)
     setError(null)
 
     try {
@@ -50,21 +50,21 @@ function IdeaGenerator() {
       })
 
       if (!response.ok) {
-        throw new Error('문제점 생성에 실패했습니다.')
+        throw new Error('어려움 생성에 실패했습니다.')
       }
 
       const data = await response.json()
-      setProblem(data.problem)
+      setDifficulty(data.difficulty)
     } catch (err) {
       setError(err.message)
     } finally {
-      setLoadingProblem(false)
+      setLoadingDifficulty(false)
     }
   }
 
   const generateIdea = async () => {
-    if (!target || !problem) {
-      setError('타겟과 어려움을 모두 입력하거나 선택해주세요.')
+    if (!target || !difficulty) {
+      setError('타겟층과 어려움을 모두 입력하거나 선택해주세요.')
       return
     }
 
@@ -79,7 +79,7 @@ function IdeaGenerator() {
         },
         body: JSON.stringify({
           target,
-          problem
+          difficulty
         })
       })
 
@@ -129,14 +129,14 @@ function IdeaGenerator() {
             <div className="flex gap-2">
               <input
                 type="text"
-                value={problem}
-                onChange={(e) => setProblem(e.target.value)}
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value)}
                 placeholder="예: 시간 관리가 어렵다"
                 className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none transition-colors"
               />
               <button
-                onClick={getRandomProblem}
-                disabled={loadingProblem}
+                onClick={getRandomDifficulty}
+                disabled={loadingDifficulty}
                 className="bg-pink-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-pink-600 transition-colors disabled:opacity-50"
               >
                 🎲 랜덤
@@ -182,13 +182,13 @@ function IdeaGenerator() {
             </div>
 
             <div className="border-l-4 border-pink-500 pl-4">
-              <h3 className="text-sm font-semibold text-pink-600 uppercase tracking-wide mb-2">문제점</h3>
-              <p className="text-xl text-gray-800">{idea.problem}</p>
+              <h3 className="text-sm font-semibold text-pink-600 uppercase tracking-wide mb-2">어려움</h3>
+              <p className="text-xl text-gray-800">{idea.difficulty}</p>
             </div>
 
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
               <h3 className="text-sm font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 uppercase tracking-wide mb-3">
-                💡 프로젝트 아이디어
+                💡 아이디어
               </h3>
               <h4 className="text-2xl font-bold text-gray-900 mb-3">{idea.idea.title}</h4>
               <p className="text-gray-700 leading-relaxed">{idea.idea.description}</p>
