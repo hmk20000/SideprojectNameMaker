@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { supabase } from "../lib/supabase.js";
 
 export default async function handler(req, res) {
   // CORS 헤더 설정
@@ -88,6 +89,33 @@ export default async function handler(req, res) {
     }
 
     const result = JSON.parse(jsonText.trim())
+
+    // Supabase에 로그 저장
+    try {
+      const { data, error } = await supabase
+        .from('spnm_log')
+        .insert([
+          {
+            target: result.target,
+            problem: result.difficulty,
+            idea_title: result.idea.title,
+            idea_description: result.idea.description
+          }
+        ])
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Supabase 저장 오류:', error)
+        // 저장 실패해도 아이디어는 반환
+      } else {
+        // 저장 성공 시 ID 포함
+        result.id = data.id
+      }
+    } catch (dbError) {
+      console.error('DB 저장 중 예외 발생:', dbError)
+      // 저장 실패해도 아이디어는 반환
+    }
 
     return res.status(200).json(result)
   } catch (error) {
