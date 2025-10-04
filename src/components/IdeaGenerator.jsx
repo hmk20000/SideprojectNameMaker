@@ -1,11 +1,73 @@
 import { useState } from 'react'
 
 function IdeaGenerator() {
+  const [target, setTarget] = useState('')
+  const [problem, setProblem] = useState('')
   const [idea, setIdea] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [loadingTarget, setLoadingTarget] = useState(false)
+  const [loadingProblem, setLoadingProblem] = useState(false)
   const [error, setError] = useState(null)
 
+  const getRandomTarget = async () => {
+    setLoadingTarget(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/generate-target', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('타겟 생성에 실패했습니다.')
+      }
+
+      const data = await response.json()
+      setTarget(data.target)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoadingTarget(false)
+    }
+  }
+
+  const getRandomProblem = async () => {
+    setLoadingProblem(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/generate-problem', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          target: target || null
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('문제점 생성에 실패했습니다.')
+      }
+
+      const data = await response.json()
+      setProblem(data.problem)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoadingProblem(false)
+    }
+  }
+
   const generateIdea = async () => {
+    if (!target || !problem) {
+      setError('타겟과 어려움을 모두 입력하거나 선택해주세요.')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -15,6 +77,10 @@ function IdeaGenerator() {
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          target,
+          problem
+        })
       })
 
       if (!response.ok) {
@@ -32,6 +98,54 @@ function IdeaGenerator() {
 
   return (
     <div className="max-w-3xl mx-auto">
+      <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-semibold text-purple-600 uppercase tracking-wide mb-3">
+              타겟층
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={target}
+                onChange={(e) => setTarget(e.target.value)}
+                placeholder="예: 바쁜 직장인"
+                className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors"
+              />
+              <button
+                onClick={getRandomTarget}
+                disabled={loadingTarget}
+                className="bg-purple-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50"
+              >
+                🎲 랜덤
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-pink-600 uppercase tracking-wide mb-3">
+              어려움
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={problem}
+                onChange={(e) => setProblem(e.target.value)}
+                placeholder="예: 시간 관리가 어렵다"
+                className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none transition-colors"
+              />
+              <button
+                onClick={getRandomProblem}
+                disabled={loadingProblem}
+                className="bg-pink-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-pink-600 transition-colors disabled:opacity-50"
+              >
+                🎲 랜덤
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="text-center mb-8">
         <button
           onClick={generateIdea}
@@ -47,7 +161,7 @@ function IdeaGenerator() {
               생성 중...
             </span>
           ) : (
-            '✨ 아이디어 생성하기'
+            '🔍 아이디어 찾기'
           )}
         </button>
       </div>
