@@ -1,3 +1,5 @@
+import { GoogleGenAI } from "@google/genai";
+
 export default async function handler(req, res) {
   // CORS 헤더 설정
   res.setHeader('Access-Control-Allow-Credentials', true)
@@ -24,7 +26,9 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'API 키가 설정되지 않았습니다.' })
     }
 
-    // Gemini API 호출
+    // Google GenAI SDK 사용
+    const ai = new GoogleGenAI({ apiKey });
+
     const prompt = `당신은 창의적인 사이드 프로젝트 아이디어 생성 전문가입니다.
 
 다음 형식으로 랜덤한 사이드 프로젝트 아이디어를 생성해주세요:
@@ -46,46 +50,27 @@ export default async function handler(req, res) {
 
 참고: 매번 다른 조합으로 창의적인 아이디어를 만들어주세요.`
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        generationConfig: {
+          temperature: 1.0,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024,
         },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: prompt,
-                },
-              ],
-            },
-          ],
-          generationConfig: {
-            temperature: 1.0,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 1024,
-          },
-        }),
+        thinkingConfig: {
+          thinkingBudget: 0, // 사고 기능 비활성화 (속도 우선)
+        }
       }
-    )
+    });
 
-    if (!response.ok) {
-      const errorData = await response.json()
-      console.error('Gemini API Error:', errorData)
-      throw new Error('AI API 호출에 실패했습니다.')
-    }
-
-    const data = await response.json()
-
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+    if (!response.text) {
       throw new Error('AI 응답 형식이 올바르지 않습니다.')
     }
 
-    const generatedText = data.candidates[0].content.parts[0].text
+    const generatedText = response.text
 
     // JSON 추출 (코드 블록 제거)
     let jsonText = generatedText.trim()
