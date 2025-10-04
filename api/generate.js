@@ -26,29 +26,36 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'API 키가 설정되지 않았습니다.' })
     }
 
+    const { target, difficulty } = req.body
+
+    if (!target || !difficulty) {
+      return res.status(400).json({ error: '타겟층과 어려움을 모두 입력해주세요.' })
+    }
+
     // Google GenAI SDK 사용
     const ai = new GoogleGenAI({ apiKey });
 
     const prompt = `당신은 창의적인 사이드 프로젝트 아이디어 생성 전문가입니다.
 
-다음 형식으로 랜덤한 사이드 프로젝트 아이디어를 생성해주세요:
+다음 정보를 기반으로 사이드 프로젝트 아이디어를 생성해주세요:
 
-1. 먼저 랜덤한 타겟층을 선택하세요 (예: "바쁜 직장인", "반려동물 주인", "프리랜서", "대학생", "육아맘", "취준생" 등)
-2. 그 타겟층이 겪는 구체적인 어려움을 선택하세요 (예: "시간 부족", "정보 부족", "비용 부담", "관리 어려움" 등)
-3. 그 어려움을 해결할 수 있는 창의적이고 실현 가능한 사이드 프로젝트 아이디어를 제안하세요
+타겟층: ${target}
+어려움: ${difficulty}
+
+위 타겟층이 겪는 어려움을 해결할 수 있는 창의적이고 실현 가능한 사이드 프로젝트 아이디어를 제안해주세요.
 
 응답은 반드시 아래 JSON 형식으로만 작성해주세요. 다른 텍스트는 포함하지 마세요:
 
 {
-  "target": "타겟층",
-  "difficulty": "어려움",
+  "target": "${target}",
+  "difficulty": "${difficulty}",
   "idea": {
     "title": "아이디어 제목",
     "description": "아이디어에 대한 간단한 설명 (2-3문장)"
   }
 }
 
-참고: 매번 다른 조합으로 창의적인 아이디어를 만들어주세요.`
+중요: target과 difficulty는 반드시 위에 제공된 값을 그대로 사용하세요.`
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
